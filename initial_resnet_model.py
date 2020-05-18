@@ -95,7 +95,7 @@ def train_model(model, criterion, optimizer, scheduler, n_epochs):
             optimizer.step()
             correct += (labels==predicted).sum().item() 
         accuracy = 100/64*correct/len(train_loader)
-        print("Epoch %s, Training Accuracy: %.4f, Training Loss: %.4f" % (epoch+1, accuracy, np.average(losses)))
+        print("Epoch %s, Training Accuracy: %.4f %%, Training Loss: %.4f" % (epoch+1, accuracy, np.average(losses)))
         all_losses.append(np.average(losses))
         all_accuracies.append(accuracy)
     return all_losses, all_accuracies
@@ -116,7 +116,7 @@ def test_model(model, val_loader):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     test_acc = 100.0 * correct / total
-    print('Validation accuracy: %d %%' % (test_acc))
+    print('Validation accuracy: %.4f %%' % (test_acc))
     return test_acc
 
 '''
@@ -126,6 +126,8 @@ def main():
     cars_data_train = CarsDataset('train_annos_cleaned.csv', train_path, transform=transforms.Compose(
         [transforms.Resize(100), transforms.RandomSizedCrop(100), transforms.ToTensor()]))
 
+    print("Splitting training dataset into train and validation sets")
+    
     subset_indices_train, subset_indices_valid = train_valid_split(cars_data_train)
 
     train_loader = torch.utils.data.DataLoader(cars_data_train, batch_size=64, sampler=SubsetRandomSampler(subset_indices_train))
@@ -141,10 +143,16 @@ def main():
 
     lrscheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max')
 
-    training_losses, training_accuracies = train_model(model_ft, criterion, optimizer, lrscheduler, n_epochs=3)
+    print ("Training model...")
+    
+    training_losses, training_accuracies = train_model(model_ft, criterion, optimizer, lrscheduler, n_epochs=10)
     test_accuracy = test_model(model_ft, val_loader)
     
-    torch.save(model_ft.state_dict(), "initial_resnet.pt")
+    print("Saving initial ResNet model...")
     
+    torch.save(model_ft.state_dict(), "initial_resnet.pt")
+
+     print ("Done!")
+        
 if __name__ == "__main__":
     main()

@@ -71,6 +71,10 @@ def train_valid_split(train_dataset):
     subset_indices_valid = indices[int(0.85*len(train_dataset)) :]
 
     assert (len(subset_indices_train) + len(subset_indices_valid) == len(train_dataset))
+    
+    np.save("train_indices.npy", subset_indices_train)
+    np.save("valid_indices.npy", subset_indices_valid)
+    
     return subset_indices_train, subset_indices_valid
 
 
@@ -126,9 +130,10 @@ def main():
     cars_data_train = CarsDataset('train_annos_cleaned.csv', train_path, transform=transforms.Compose(
         [transforms.Resize(100), transforms.RandomSizedCrop(100), transforms.ToTensor()]))
 
-    print("Splitting training dataset into train and validation sets")
+    print("Loading training and validation sets")
     
-    subset_indices_train, subset_indices_valid = train_valid_split(cars_data_train)
+    subset_indices_train = np.load("train_indices.npy")
+    subset_indices_valid = np.load("valid_indices.npy")
 
     train_loader = torch.utils.data.DataLoader(cars_data_train, batch_size=64, sampler=SubsetRandomSampler(subset_indices_train))
     val_loader = torch.utils.data.DataLoader(cars_data_train, batch_size=64, sampler=SubsetRandomSampler(subset_indices_valid))
@@ -150,7 +155,7 @@ def main():
     
     print("Saving initial ResNet model...")
     
-    torch.save(model_ft.state_dict(), "initial_resnet.pt")
+    torch.save(model_ft.state_dict(), "updated_resnet.pt")
 
      print ("Done!")
         
